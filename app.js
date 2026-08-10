@@ -178,17 +178,20 @@ function calcularDistancia(lat1, lon1, lat2, lon2) {
 }
 
 let busquedaActualItem = "";
+let numTiendasMostradas = 3;
+let tiendasBuscadasCache = [];
+let tiendasDesbloqueadasLista = [];
 
 function abrirPagoBusqueda(itemName, count) {
     document.getElementById('resultados-busqueda').style.display = 'none';
     busquedaActualItem = itemName;
     const modal = document.getElementById('modal-pago-busqueda');
     if (modal) {
-        document.getElementById('pago-busqueda-desc').innerHTML = `Hemos encontrado <b>${count} tiendas</b> con stock de <b>${itemName}</b>.<br><br>Paga $400 para ver las 3 tiendas más cercanas en el mapa.`;
+        document.getElementById('pago-busqueda-desc').innerHTML = `Hemos encontrado <b>${count} tiendas</b> con stock de <b>${itemName}</b>.<br><br>Paga $500 para ver las 3 tiendas más cercanas en el mapa.`;
         
         const btnPago = document.getElementById('btn-pagar-busqueda');
-        if (saldoUsuario >= 400) {
-            btnPago.textContent = `Pagar $400 (Tienes $${saldoUsuario.toLocaleString('es-CL')})`;
+        if (saldoUsuario >= 500) {
+            btnPago.textContent = `Pagar $500 (Tienes $${saldoUsuario.toLocaleString('es-CL')})`;
             btnPago.onclick = () => confirmarPagoBusqueda();
             btnPago.style.opacity = "1";
             btnPago.disabled = false;
@@ -209,10 +212,11 @@ function cerrarPagoBusqueda() {
 }
 
 function confirmarPagoBusqueda() {
-    if (saldoUsuario >= 400) {
-        saldoUsuario -= 400;
+    if (saldoUsuario >= 500) {
+        saldoUsuario -= 500;
         actualizarSaldoUI();
         cerrarPagoBusqueda();
+        numTiendasMostradas = 3;
         mostrarResultadosCercanos(busquedaActualItem);
     } else {
         alert("Saldo insuficiente");
@@ -250,25 +254,82 @@ function mostrarResultadosCercanos(itemName) {
         
         // Ordenar por distancia
         tiendasConStock.sort((a, b) => a.distancia - b.distancia);
+        tiendasBuscadasCache = tiendasConStock;
         
-        // Tomar las 3 más cercanas
-        const top3 = tiendasConStock.slice(0, 3);
-        
-        top3.forEach(t => {
-            crearMarcador(t.loc, t.originalIndex).addTo(markersLayer);
+        // Registrar tiendas desbloqueadas
+        const mostradas = tiendasBuscadasCache.slice(0, numTiendasMostradas);
+        const now = Date.now();
+        mostradas.forEach(t => {
+            const existe = tiendasDesbloqueadasLista.find(x => x.originalIndex === t.originalIndex);
+            if (existe) {
+                existe.unlockTime = now;
+            } else {
+                tiendasDesbloqueadasLista.push({ loc: t.loc, originalIndex: t.originalIndex, unlockTime: now });
+            }
         });
+        actualizarTemporizadoresDesbloqueadas();
         
-        if (top3.length > 0) {
-            const group = new L.featureGroup(markersLayer.getLayers());
-            miMapa.fitBounds(group.getBounds(), {padding: [30, 30], maxZoom: 16});
-            
-            // Abrir popup de la más cercana
-            setTimeout(() => {
-                const layers = markersLayer.getLayers();
-                if (layers.length > 0) layers[0].openPopup();
-            }, 300);
-        }
+        renderizarTiendasCachadas();
     }, 150);
+}
+
+function renderizarTiendasCachadas() {
+    if (markersLayer) {
+        miMapa.removeLayer(markersLayer);
+    }
+    markersLayer = L.layerGroup().addTo(miMapa);
+
+    const mostradas = tiendasBuscadasCache.slice(0, numTiendasMostradas);
+    
+    mostradas.forEach(t => {
+        crearMarcador(t.loc, t.originalIndex).addTo(markersLayer);
+    });
+    
+    if (mostradas.length > 0) {
+        const group = new L.featureGroup(markersLayer.getLayers());
+        miMapa.fitBounds(group.getBounds(), {padding: [30, 30], maxZoom: 16});
+        
+        // Abrir popup de la más cercana
+        setTimeout(() => {
+            const layers = markersLayer.getLayers();
+            if (layers.length > 0) layers[0].openPopup();
+        }, 300);
+    }
+
+    const btnContainer = document.getElementById('container-desbloquear-mas');
+    if (btnContainer) {
+        if (tiendasBuscadasCache.length > numTiendasMostradas) {
+            btnContainer.style.display = 'block';
+        } else {
+            btnContainer.style.display = 'none';
+        }
+    }
+}
+
+function desbloquearTiendaAdicional() {
+    if (saldoUsuario >= 250) {
+        if (confirm("¿Pagar $250 para desbloquear la siguiente tienda más cercana?")) {
+            saldoUsuario -= 250;
+            actualizarSaldoUI();
+            numTiendasMostradas++;
+            
+            const nuevaTienda = tiendasBuscadasCache[numTiendasMostradas - 1];
+            if (nuevaTienda) {
+                const now = Date.now();
+                const existe = tiendasDesbloqueadasLista.find(x => x.originalIndex === nuevaTienda.originalIndex);
+                if (existe) {
+                    existe.unlockTime = now;
+                } else {
+                    tiendasDesbloqueadasLista.push({ loc: nuevaTienda.loc, originalIndex: nuevaTienda.originalIndex, unlockTime: now });
+                }
+                actualizarTemporizadoresDesbloqueadas();
+            }
+
+            renderizarTiendasCachadas();
+        }
+    } else {
+        alert("Saldo insuficiente para desbloquear otra tienda.");
+    }
 }
 
 
@@ -452,3 +513,44 @@ function cerrarSesionApp() {
         document.querySelectorAll('.nav-item').forEach(el => el.classList.remove('active'));
     }
 }
+
+function actualizarTemporizadoresDesbloqueadas() {
+    const now = Date.now();
+    // Filtrar las que expiraron (1 hora = 3600000 ms)
+    tiendasDesbloqueadasLista = tiendasDesbloqueadasLista.filter(t => (now - t.unlockTime) < 3600000);
+    
+    const container = document.getElementById('contenedor-tiendas-desbloqueadas');
+    const listaHtml = document.getElementById('lista-tiendas-desbloqueadas');
+    
+    if (!container || !listaHtml) return;
+    
+    if (tiendasDesbloqueadasLista.length === 0) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    container.style.display = 'block';
+    
+    let html = '';
+    tiendasDesbloqueadasLista.forEach(t => {
+        const remainingMs = 3600000 - (now - t.unlockTime);
+        const totalSegundos = Math.floor(remainingMs / 1000);
+        const minutos = Math.floor(totalSegundos / 60).toString().padStart(2, '0');
+        const segundos = (totalSegundos % 60).toString().padStart(2, '0');
+        
+        html += `
+        <div style="background: white; border-radius: 12px; padding: 12px; border: 1px solid #E2E8F0; display: flex; justify-content: space-between; align-items: center; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.02);" onclick="abrirStock(${t.originalIndex})">
+            <div>
+                <h4 style="font-size: 14px; font-weight: 700; color: #1E293B; margin: 0 0 4px 0;">${t.loc.name}</h4>
+                <p style="font-size: 11px; color: #64748B; margin: 0;">Actualizado ${t.loc.lastUpdate}</p>
+            </div>
+            <div style="background: #FEE2E2; color: #EF4444; padding: 6px 10px; border-radius: 8px; font-weight: 700; font-size: 13px; font-family: monospace;">
+                ${minutos}:${segundos}
+            </div>
+        </div>`;
+    });
+    
+    listaHtml.innerHTML = html;
+}
+
+setInterval(actualizarTemporizadoresDesbloqueadas, 1000);

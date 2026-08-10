@@ -82,8 +82,15 @@
                         </div>
                     </div>
 
-
-
+                    <div id="contenedor-tiendas-desbloqueadas" style="display: none; margin-bottom: 24px;">
+                        <h3 style="font-size: 15px; color: #1E293B; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                            Tiendas Desbloqueadas Recientemente
+                        </h3>
+                        <div id="lista-tiendas-desbloqueadas" style="display: flex; flex-direction: column; gap: 12px;">
+                            <!-- JS will populate this -->
+                        </div>
+                    </div>
 
                 </div>
             </div>
@@ -113,6 +120,12 @@
 
                     <div class="map-area" style="height: 350px;">
                         <div id="map-concepcion" style="width: 100%; height: 100%; z-index: 1;"></div>
+                    </div>
+                    
+                    <div id="container-desbloquear-mas" style="display: none; margin-top: 16px; text-align: center;">
+                        <button onclick="desbloquearTiendaAdicional()" style="background: #1E293B; color: white; border: none; padding: 12px 20px; border-radius: 12px; font-weight: 600; font-size: 14px; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+                            Desbloquear 1 tienda más por $250
+                        </button>
                     </div>
 
                     <div class="promo-card" onclick="alert('Verificador')">
@@ -467,7 +480,7 @@
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
                             Añadir Fondos
                         </button>
-                        <p style="font-size: 11px; color: #64748B; text-align: center; margin-top: 12px;">Usa tu saldo para verificaciones rápidas ($400)</p>
+                        <p style="font-size: 11px; color: #64748B; text-align: center; margin-top: 12px;">Usa tu saldo para verificaciones rápidas ($500)</p>
                     </div>
 
                     <h3 style="font-size: 14px; color: #64748B; font-weight: 600; margin-bottom: 12px;">Métodos Guardados</h3>
@@ -564,7 +577,7 @@
                             <option>Información de stock incorrecta</option>
                             <option>El negocio estaba cerrado</option>
                             <option>Felicitación / Sugerencia de mejora</option>
-                            <option>Problema con el cobro ($400)</option>
+                            <option>Problema con el cobro ($500)</option>
                         </select>
 
                         <label style="font-size: 12px; font-weight: 600; color: #64748B; margin-bottom: 8px; display: block;">Cuéntanos más detalles</label>
@@ -621,13 +634,13 @@
                     </div>
                     <div>
                         <p style="font-size: 13px; color: #1E293B; margin: 0 0 4px 0; font-weight: 600;">Costo del servicio</p>
-                        <p style="font-size: 18px; color: #2D8B71; margin: 0; font-weight: 800;">$400</p>
+                        <p style="font-size: 18px; color: #2D8B71; margin: 0; font-weight: 800;">$500</p>
                     </div>
                 </div>
             </div>
             
             <button id="btn-pagar-busqueda" style="background: #2D8B71; color: white; border: none; padding: 16px; border-radius: 16px; font-weight: 700; font-size: 16px; cursor: pointer; box-shadow: 0 4px 6px rgba(45,139,113,0.3); width: 100%;">
-                Pagar $400
+                Pagar $500
             </button>
         </div>
     </div>
