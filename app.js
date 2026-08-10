@@ -1,6 +1,8 @@
 let rolActual = 'usuario';
 let miMapa = null;
 let markersLayer = null;
+let mapaGruas = null;
+let markersGruasLayer = null;
 
 // Nuevas variables de estado para reservas
 let saldoUsuario = 4500;
@@ -380,10 +382,21 @@ function setActive(element, viewId) {
                     attribution: '&copy; OpenStreetMap contributors'
                 }).addTo(miMapa);
             }
+
+            if (!mapaGruas) {
+                mapaGruas = L.map('map-gruas').setView([-36.826279, -73.049774], 14);
+                
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    attribution: '&copy; OpenStreetMap contributors'
+                }).addTo(mapaGruas);
+
+                cargarMarcadoresGruas();
+            }
             
             // Allow container to render before invalidating size
             setTimeout(() => {
                 if(miMapa) miMapa.invalidateSize();
+                if(mapaGruas) mapaGruas.invalidateSize();
             }, 100);
         }
     } else {
@@ -554,3 +567,78 @@ function actualizarTemporizadoresDesbloqueadas() {
 }
 
 setInterval(actualizarTemporizadoresDesbloqueadas, 1000);
+
+function cargarMarcadoresGruas() {
+    if (markersGruasLayer) {
+        mapaGruas.removeLayer(markersGruasLayer);
+    }
+    
+    markersGruasLayer = L.layerGroup().addTo(mapaGruas);
+    
+    const gruas = locationsData.filter(loc => loc.type === 'gruas');
+    
+    gruas.forEach(loc => {
+        const isOnline = loc.status === 'En Línea';
+        const color = isOnline ? '#F59E0B' : '#94A3B8'; // Naranja si en linea, Gris si no
+        
+        const markerHtmlStyles = `
+            background-color: ${color};
+            width: 1.5rem;
+            height: 1.5rem;
+            display: block;
+            left: -0.75rem;
+            top: -0.75rem;
+            position: relative;
+            border-radius: 50%;
+            border: 2px solid #FFFFFF;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 10px;
+        `;
+        
+        const customIcon = L.divIcon({
+            className: "custom-pin",
+            iconAnchor: [0, 12],
+            labelAnchor: [0, 0],
+            popupAnchor: [0, -12],
+            html: `<span style="${markerHtmlStyles}">🛻</span>`
+        });
+        
+        let popupContent = `<div style="text-align:center; padding-bottom:4px;">`;
+        popupContent += `<b style="font-size:14px; color:#1E293B; display:block; margin-bottom:4px;">${loc.name}</b>`;
+        popupContent += `<span style="color:#64748B; font-size:11px; display:block;">Tipo: ${loc.modelo}</span>`;
+        popupContent += `<span style="color:#64748B; font-size:11px; display:block;">Para: <b>${loc.capacidad}</b></span>`;
+        popupContent += `<span style="color:#64748B; font-size:11px; display:block;">Capacidad: <b>${loc.pesoMax}</b></span>`;
+        popupContent += `<span style="color:${color}; font-weight:700; font-size:12px; display:block; margin-top:4px;">${loc.status}</span>`;
+        popupContent += `<span style="color:#439B8F; font-weight:600; font-size:11px; display:block; margin-top:2px;">Últ. act: ${loc.lastUpdate}</span>`;
+        
+        if (isOnline) {
+            popupContent += `<button onclick="alert('Solicitando grúa de remolque...')" style="margin-top:10px; background: #F59E0B; color: white; border: none; padding: 6px 14px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; box-shadow: 0 2px 4px rgba(245,158,11,0.3); width: 100%;">Solicitar Grúa</button>`;
+        }
+        
+        popupContent += `</div>`;
+        
+        L.marker([loc.lat, loc.lng], {icon: customIcon}).bindPopup(popupContent).addTo(markersGruasLayer);
+    });
+}
+
+function slideMap(index) {
+    const track = document.getElementById('map-slider-track');
+    const dot0 = document.getElementById('dot-map-0');
+    const dot1 = document.getElementById('dot-map-1');
+    
+    if (index === 0) {
+        track.style.transform = 'translateX(0%)';
+        dot0.style.background = '#2D8B71';
+        dot1.style.background = '#CBD5E1';
+        setTimeout(() => { if(miMapa) miMapa.invalidateSize(); }, 300);
+    } else {
+        track.style.transform = 'translateX(-50%)';
+        dot0.style.background = '#CBD5E1';
+        dot1.style.background = '#2D8B71';
+        setTimeout(() => { if(mapaGruas) mapaGruas.invalidateSize(); }, 300);
+    }
+}

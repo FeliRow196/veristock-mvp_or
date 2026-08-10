@@ -230,5 +230,12 @@ const locationsData = [
           {item: 'Alimento Perro Cachorro 10kg', qty: '8 unid.', precio: '$18.200'}, {item: 'Arena Gatos Premium', qty: '15 bolsas', precio: '$8.300'}, {item: 'Comida Hamster', qty: '10 cajas', precio: '$2.800'},
           {item: 'Juguete Pluma Gato', qty: '25 unid.', precio: '$1.500'}
       ] 
-    }
+    },
+
+    // --- GRUAS DE REMOLQUE ---
+    { type: 'gruas', name: 'Grúas San Pedro (Cama)', lat: -36.820, lng: -73.045, color: '#F59E0B', lastUpdate: 'hace 5 minutos', status: 'En Línea', capacidad: 'Vehículos Livianos', pesoMax: 'Hasta 2.500 kg', modelo: 'Grúa Cama Hidráulica' },
+    { type: 'gruas', name: 'Grúas El Rápido (Arrastre)', lat: -36.828, lng: -73.055, color: '#94A3B8', lastUpdate: 'hace 2 horas', status: 'Fuera de Línea', capacidad: 'Camionetas/SUV', pesoMax: 'Hasta 3.500 kg', modelo: 'Grúa de Arrastre' },
+    { type: 'gruas', name: 'Grúas Concepción (Pesado)', lat: -36.815, lng: -73.048, color: '#F59E0B', lastUpdate: 'hace 10 minutos', status: 'En Línea', capacidad: 'Camiones y Buses', pesoMax: 'Hasta 15.000 kg', modelo: 'Grúa Pesada' },
+    { type: 'gruas', name: 'Servicio de Grúa 24/7', lat: -36.826, lng: -73.040, color: '#F59E0B', lastUpdate: 'hace 1 minuto', status: 'En Línea', capacidad: 'Vehículos Livianos', pesoMax: 'Hasta 2.000 kg', modelo: 'Grúa Cama' },
+    { type: 'gruas', name: 'Grúas Express Bío Bío', lat: -36.824, lng: -73.051, color: '#94A3B8', lastUpdate: 'ayer', status: 'Fuera de Línea', capacidad: 'Vehículos Livianos', pesoMax: 'Hasta 2.500 kg', modelo: 'Grúa de Arrastre' }
 ];

@@ -118,8 +118,21 @@
                 <div class="main-panel">
 
 
-                    <div class="map-area" style="height: 350px;">
-                        <div id="map-concepcion" style="width: 100%; height: 100%; z-index: 1;"></div>
+                    <div class="map-slider-container" style="overflow: hidden; height: 350px; position: relative; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border: 1px solid #E2E8F0;">
+                        <div class="map-slider-track" id="map-slider-track" style="display: flex; width: 200%; height: 100%; transition: transform 0.3s ease;">
+                            <div style="width: 50%; height: 100%; flex-shrink: 0; position: relative;">
+                                <div id="map-concepcion" style="width: 100%; height: 100%; z-index: 1;"></div>
+                                <div style="position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,0.95); padding: 4px 10px; border-radius: 8px; z-index: 1000; font-weight: 700; font-size: 12px; color: #1E293B; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">🏪 Comercios Locales</div>
+                            </div>
+                            <div style="width: 50%; height: 100%; flex-shrink: 0; position: relative;">
+                                <div id="map-gruas" style="width: 100%; height: 100%; z-index: 1;"></div>
+                                <div style="position: absolute; top: 10px; left: 10px; background: rgba(255,255,255,0.95); padding: 4px 10px; border-radius: 8px; z-index: 1000; font-weight: 700; font-size: 12px; color: #1E293B; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">🛻 Grúas de Remolque</div>
+                            </div>
+                        </div>
+                        <div style="position: absolute; bottom: 15px; left: 0; right: 0; display: flex; justify-content: center; gap: 8px; z-index: 1000;">
+                            <button onclick="slideMap(0)" id="dot-map-0" style="width: 12px; height: 12px; border-radius: 50%; background: #2D8B71; border: 2px solid white; cursor: pointer; padding: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: background 0.2s;"></button>
+                            <button onclick="slideMap(1)" id="dot-map-1" style="width: 12px; height: 12px; border-radius: 50%; background: #CBD5E1; border: 2px solid white; cursor: pointer; padding: 0; box-shadow: 0 2px 4px rgba(0,0,0,0.2); transition: background 0.2s;"></button>
+                        </div>
                     </div>
                     
                     <div id="container-desbloquear-mas" style="display: none; margin-top: 16px; text-align: center;">
