@@ -131,16 +131,18 @@ function buscarProducto(query) {
     const productosEncontrados = {};
     
     locationsData.forEach((loc) => {
-        loc.stock.forEach(stockItem => {
-            if (stockItem.item.toLowerCase().includes(query) && stockItem.qty !== 'Agotado') {
-                if (!productosEncontrados[stockItem.item]) {
-                    productosEncontrados[stockItem.item] = {
-                        count: 0
-                    };
+        if (loc.stock) {
+            loc.stock.forEach(stockItem => {
+                if (stockItem.item.toLowerCase().includes(query) && stockItem.qty !== 'Agotado') {
+                    if (!productosEncontrados[stockItem.item]) {
+                        productosEncontrados[stockItem.item] = {
+                            count: 0
+                        };
+                    }
+                    productosEncontrados[stockItem.item].count++;
                 }
-                productosEncontrados[stockItem.item].count++;
-            }
-        });
+            });
+        }
     });
     
     const items = Object.keys(productosEncontrados);
@@ -243,14 +245,16 @@ function mostrarResultadosCercanos(itemName) {
         // Filtrar tiendas que tienen el producto con stock
         const tiendasConStock = [];
         locationsData.forEach((loc, originalIndex) => {
-            const hasItem = loc.stock.some(s => s.item === itemName && s.qty !== 'Agotado');
-            if (hasItem) {
-                const dist = calcularDistancia(userLat, userLng, loc.lat, loc.lng);
-                tiendasConStock.push({
-                    loc: loc,
-                    originalIndex: originalIndex,
-                    distancia: dist
-                });
+            if (loc.stock) {
+                const hasItem = loc.stock.some(s => s.item === itemName && s.qty !== 'Agotado');
+                if (hasItem) {
+                    const dist = calcularDistancia(userLat, userLng, loc.lat, loc.lng);
+                    tiendasConStock.push({
+                        loc: loc,
+                        originalIndex: originalIndex,
+                        distancia: dist
+                    });
+                }
             }
         });
         
@@ -633,12 +637,24 @@ function slideMap(index) {
     if (index === 0) {
         track.style.transform = 'translateX(0%)';
         dot0.style.background = '#2D8B71';
-        dot1.style.background = '#CBD5E1';
+        dot0.style.color = 'white';
+        dot0.style.boxShadow = '0 2px 8px rgba(45, 139, 113, 0.3)';
+        
+        dot1.style.background = 'transparent';
+        dot1.style.color = '#64748B';
+        dot1.style.boxShadow = 'none';
+        
         setTimeout(() => { if(miMapa) miMapa.invalidateSize(); }, 300);
     } else {
         track.style.transform = 'translateX(-50%)';
-        dot0.style.background = '#CBD5E1';
+        dot0.style.background = 'transparent';
+        dot0.style.color = '#64748B';
+        dot0.style.boxShadow = 'none';
+        
         dot1.style.background = '#2D8B71';
+        dot1.style.color = 'white';
+        dot1.style.boxShadow = '0 2px 8px rgba(45, 139, 113, 0.3)';
+        
         setTimeout(() => { if(mapaGruas) mapaGruas.invalidateSize(); }, 300);
     }
 }
