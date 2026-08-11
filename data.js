@@ -233,9 +233,9 @@ const locationsData = [
     },
 
     // --- GRUAS DE REMOLQUE ---
-    { type: 'gruas', name: 'Grúas San Pedro (Cama)', lat: -36.820, lng: -73.045, color: '#F59E0B', lastUpdate: 'hace 5 minutos', status: 'En Línea', capacidad: 'Vehículos Livianos', pesoMax: 'Hasta 2.500 kg', modelo: 'Grúa Cama Hidráulica' },
-    { type: 'gruas', name: 'Grúas El Rápido (Arrastre)', lat: -36.828, lng: -73.055, color: '#94A3B8', lastUpdate: 'hace 2 horas', status: 'Fuera de Línea', capacidad: 'Camionetas/SUV', pesoMax: 'Hasta 3.500 kg', modelo: 'Grúa de Arrastre' },
-    { type: 'gruas', name: 'Grúas Concepción (Pesado)', lat: -36.815, lng: -73.048, color: '#F59E0B', lastUpdate: 'hace 10 minutos', status: 'En Línea', capacidad: 'Camiones y Buses', pesoMax: 'Hasta 15.000 kg', modelo: 'Grúa Pesada' },
-    { type: 'gruas', name: 'Servicio de Grúa 24/7', lat: -36.826, lng: -73.040, color: '#F59E0B', lastUpdate: 'hace 1 minuto', status: 'En Línea', capacidad: 'Vehículos Livianos', pesoMax: 'Hasta 2.000 kg', modelo: 'Grúa Cama' },
-    { type: 'gruas', name: 'Grúas Express Bío Bío', lat: -36.824, lng: -73.051, color: '#94A3B8', lastUpdate: 'ayer', status: 'Fuera de Línea', capacidad: 'Vehículos Livianos', pesoMax: 'Hasta 2.500 kg', modelo: 'Grúa de Arrastre' }
+    { type: 'gruas', name: 'Grúas San Pedro (Cama)', lat: -36.820, lng: -73.045, color: '#F59E0B', lastUpdate: 'hace 5 minutos', status: 'En Línea', capacidad: 'Vehículos Livianos', pesoMax: 'Hasta 2.500 kg', modelo: 'Grúa Cama Hidráulica', conductor: 'Juan Pérez', telefono: '+56 9 1234 5678' },
+    { type: 'gruas', name: 'Grúas El Rápido (Arrastre)', lat: -36.828, lng: -73.055, color: '#94A3B8', lastUpdate: 'hace 2 horas', status: 'Fuera de Línea', capacidad: 'Camionetas/SUV', pesoMax: 'Hasta 3.500 kg', modelo: 'Grúa de Arrastre', conductor: 'Pedro Soto', telefono: '+56 9 8765 4321' },
+    { type: 'gruas', name: 'Grúas Concepción (Pesado)', lat: -36.815, lng: -73.048, color: '#F59E0B', lastUpdate: 'hace 10 minutos', status: 'En Línea', capacidad: 'Camiones y Buses', pesoMax: 'Hasta 15.000 kg', modelo: 'Grúa Pesada', conductor: 'Luis Martínez', telefono: '+56 9 5555 1111' },
+    { type: 'gruas', name: 'Servicio de Grúa 24/7', lat: -36.826, lng: -73.040, color: '#F59E0B', lastUpdate: 'hace 1 minuto', status: 'En Línea', capacidad: 'Vehículos Livianos', pesoMax: 'Hasta 2.000 kg', modelo: 'Grúa Cama', conductor: 'Carlos Silva', telefono: '+56 9 4444 2222' },
+    { type: 'gruas', name: 'Grúas Express Bío Bío', lat: -36.824, lng: -73.051, color: '#94A3B8', lastUpdate: 'ayer', status: 'Fuera de Línea', capacidad: 'Vehículos Livianos', pesoMax: 'Hasta 2.500 kg', modelo: 'Grúa de Arrastre', conductor: 'Roberto Gómez', telefono: '+56 9 9999 8888' }
 ];

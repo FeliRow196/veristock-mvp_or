@@ -10,6 +10,7 @@ let tieneSuscripcion = true;
 let usosSuscripcion = 3;
 let reservaActual = null;
 let misReservas = [];
+let gruasDesbloqueadas = false;
 
 function actualizarSaldoUI() {
     const texts = [document.getElementById('saldo-text'), document.getElementById('perfil-saldo-text')];
@@ -619,9 +620,10 @@ function cargarMarcadoresGruas() {
         popupContent += `<span style="color:${color}; font-weight:700; font-size:12px; display:block; margin-top:4px;">${loc.status}</span>`;
         popupContent += `<span style="color:#439B8F; font-weight:600; font-size:11px; display:block; margin-top:2px;">Últ. act: ${loc.lastUpdate}</span>`;
         
-        if (isOnline) {
-            popupContent += `<button onclick="alert('Solicitando grúa de remolque...')" style="margin-top:10px; background: #F59E0B; color: white; border: none; padding: 6px 14px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; box-shadow: 0 2px 4px rgba(245,158,11,0.3); width: 100%;">Solicitar Grúa</button>`;
-        }
+        let btnAction = isOnline ? `solicitarGruaOnline('${loc.conductor}', '${loc.telefono}')` : `solicitarGruaOffline()`;
+        let btnColor = isOnline ? '#F59E0B' : '#94A3B8';
+        
+        popupContent += `<button onclick="${btnAction}" style="margin-top:10px; background: ${btnColor}; color: white; border: none; padding: 6px 14px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%;">Solicitar Grúa</button>`;
         
         popupContent += `</div>`;
         
@@ -630,6 +632,11 @@ function cargarMarcadoresGruas() {
 }
 
 function slideMap(index) {
+    if (index === 1 && !gruasDesbloqueadas) {
+        abrirPagoGruas();
+        return;
+    }
+
     const track = document.getElementById('map-slider-track');
     const dot0 = document.getElementById('dot-map-0');
     const dot1 = document.getElementById('dot-map-1');
@@ -656,5 +663,78 @@ function slideMap(index) {
         dot1.style.boxShadow = '0 2px 8px rgba(45, 139, 113, 0.3)';
         
         setTimeout(() => { if(mapaGruas) mapaGruas.invalidateSize(); }, 300);
+    }
+}
+
+function abrirPagoGruas() {
+    const modal = document.getElementById('modal-pago-gruas');
+    if (modal) {
+        const btnPago = document.getElementById('btn-pagar-gruas');
+        if (saldoUsuario >= 500) {
+            btnPago.textContent = `Pagar $500 (Tienes $${saldoUsuario.toLocaleString('es-CL')})`;
+            btnPago.onclick = () => confirmarPagoGruas();
+            btnPago.style.opacity = "1";
+            btnPago.disabled = false;
+        } else {
+            btnPago.textContent = `Saldo insuficiente ($${saldoUsuario.toLocaleString('es-CL')})`;
+            btnPago.onclick = null;
+            btnPago.style.opacity = "0.5";
+            btnPago.disabled = true;
+        }
+        modal.style.display = 'flex';
+    }
+}
+
+function cerrarPagoGruas() {
+    const modal = document.getElementById('modal-pago-gruas');
+    if (modal) modal.style.display = 'none';
+}
+
+function confirmarPagoGruas() {
+    if (saldoUsuario >= 500) {
+        saldoUsuario -= 500;
+        actualizarSaldoUI();
+        gruasDesbloqueadas = true;
+        cerrarPagoGruas();
+        slideMap(1);
+    } else {
+        alert("Saldo insuficiente");
+    }
+}
+
+function solicitarGruaOffline() {
+    const modal = document.getElementById('modal-grua-offline');
+    if (modal) modal.style.display = 'flex';
+}
+
+function cerrarModalGruaOffline() {
+    const modal = document.getElementById('modal-grua-offline');
+    if (modal) modal.style.display = 'none';
+}
+
+function solicitarGruaOnline(conductor, telefono) {
+    const modal = document.getElementById('modal-grua-online');
+    if (modal) {
+        document.getElementById('grua-conductor-nombre').textContent = conductor;
+        document.getElementById('grua-conductor-telefono').textContent = telefono;
+        modal.style.display = 'flex';
+    }
+}
+
+function cerrarModalGruaOnline() {
+    const modal = document.getElementById('modal-grua-online');
+    if (modal) modal.style.display = 'none';
+}
+
+function enviarMensajeGrua() {
+    const input = document.getElementById('input-chat-grua');
+    const container = document.getElementById('chat-messages-grua');
+    if (input.value.trim() !== '') {
+        const msgDiv = document.createElement('div');
+        msgDiv.style.cssText = "background: #2D8B71; color: white; padding: 8px 12px; border-radius: 12px 12px 0 12px; margin-bottom: 8px; align-self: flex-end; max-width: 80%; font-size: 13px;";
+        msgDiv.textContent = input.value;
+        container.appendChild(msgDiv);
+        input.value = '';
+        container.scrollTop = container.scrollHeight;
     }
 }
