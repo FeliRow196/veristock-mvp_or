@@ -12,6 +12,9 @@ let reservaActual = null;
 let misReservas = [];
 let gruasDesbloqueadas = false;
 
+// Lista para accesos rapidos en Inicio
+let asistenciasSolicitadasLista = [];
+
 function actualizarSaldoUI() {
     const texts = [document.getElementById('saldo-text'), document.getElementById('perfil-saldo-text')];
     texts.forEach(el => {
@@ -580,11 +583,14 @@ function cargarMarcadoresGruas() {
     
     markersGruasLayer = L.layerGroup().addTo(mapaGruas);
     
-    const gruas = locationsData.filter(loc => loc.type === 'gruas');
+    const serviciosVehiculos = locationsData.filter(loc => loc.type === 'gruas' || loc.type === 'vulcanizacion');
     
-    gruas.forEach(loc => {
+    serviciosVehiculos.forEach(loc => {
         const isOnline = loc.status === 'En Línea';
+        const isVulca = loc.type === 'vulcanizacion';
         const color = isOnline ? '#F59E0B' : '#94A3B8'; // Naranja si en linea, Gris si no
+        const iconEmoji = isVulca ? '🔧' : '🛻';
+        const originalIndex = locationsData.indexOf(loc);
         
         const markerHtmlStyles = `
             background-color: ${color};
@@ -609,7 +615,7 @@ function cargarMarcadoresGruas() {
             iconAnchor: [0, 12],
             labelAnchor: [0, 0],
             popupAnchor: [0, -12],
-            html: `<span style="${markerHtmlStyles}">🛻</span>`
+            html: `<span style="${markerHtmlStyles}">${iconEmoji}</span>`
         });
         
         let popupContent = `<div style="text-align:center; padding-bottom:4px;">`;
@@ -620,10 +626,17 @@ function cargarMarcadoresGruas() {
         popupContent += `<span style="color:${color}; font-weight:700; font-size:12px; display:block; margin-top:4px;">${loc.status}</span>`;
         popupContent += `<span style="color:#439B8F; font-weight:600; font-size:11px; display:block; margin-top:2px;">Últ. act: ${loc.lastUpdate}</span>`;
         
-        let btnAction = isOnline ? `solicitarGruaOnline('${loc.conductor}', '${loc.telefono}')` : `solicitarGruaOffline()`;
-        let btnColor = isOnline ? '#F59E0B' : '#94A3B8';
+        let btnAction;
+        if (isVulca) {
+            btnAction = isOnline ? `solicitarVulcaOnline(${originalIndex})` : `solicitarVulcaOffline(${originalIndex})`;
+        } else {
+            btnAction = isOnline ? `solicitarGruaOnline(${originalIndex})` : `solicitarGruaOffline(${originalIndex})`;
+        }
         
-        popupContent += `<button onclick="${btnAction}" style="margin-top:10px; background: ${btnColor}; color: white; border: none; padding: 6px 14px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%;">Solicitar Grúa</button>`;
+        let btnColor = isOnline ? '#F59E0B' : '#94A3B8';
+        let btnText = isVulca ? 'Solicitar Vulcanización' : 'Solicitar Grúa';
+        
+        popupContent += `<button onclick="${btnAction}" style="margin-top:10px; background: ${btnColor}; color: white; border: none; padding: 6px 14px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.1); width: 100%;">${btnText}</button>`;
         
         popupContent += `</div>`;
         
@@ -702,7 +715,73 @@ function confirmarPagoGruas() {
     }
 }
 
-function solicitarGruaOffline() {
+function agregarAsistenciaReciente(index) {
+    const loc = locationsData[index];
+    const now = Date.now();
+    const existe = asistenciasSolicitadasLista.find(x => x.originalIndex === index);
+    if (existe) {
+        existe.requestTime = now;
+    } else {
+        asistenciasSolicitadasLista.push({ loc: loc, originalIndex: index, requestTime: now });
+    }
+    actualizarAsistenciasSolicitadas();
+}
+
+function actualizarAsistenciasSolicitadas() {
+    const container = document.getElementById('contenedor-asistencias-solicitadas');
+    const listaHtml = document.getElementById('lista-asistencias-solicitadas');
+    
+    if (!container || !listaHtml) return;
+    
+    if (asistenciasSolicitadasLista.length === 0) {
+        container.style.display = 'none';
+        return;
+    }
+    
+    container.style.display = 'block';
+    
+    let html = '';
+    const ordenadas = [...asistenciasSolicitadasLista].sort((a, b) => b.requestTime - a.requestTime);
+    
+    ordenadas.forEach(item => {
+        const t = item.loc;
+        const isOnline = t.status === 'En Línea';
+        const color = isOnline ? '#F59E0B' : '#94A3B8';
+        const iconEmoji = t.type === 'vulcanizacion' ? '🔧' : '🛻';
+        
+        let onClickAction;
+        if (t.type === 'vulcanizacion') {
+            onClickAction = isOnline ? `solicitarVulcaOnline(${item.originalIndex})` : `solicitarVulcaOffline(${item.originalIndex})`;
+        } else {
+            onClickAction = isOnline ? `solicitarGruaOnline(${item.originalIndex})` : `solicitarGruaOffline(${item.originalIndex})`;
+        }
+        
+        html += `
+            <div onclick="${onClickAction}" style="background: white; border: 1px solid #E2E8F0; border-radius: 16px; padding: 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; box-shadow: 0 2px 4px rgba(0,0,0,0.02); transition: transform 0.2s;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <div style="width: 40px; height: 40px; background: #F8FAFC; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px;">
+                        ${iconEmoji}
+                    </div>
+                    <div>
+                        <h4 style="margin: 0; font-size: 14px; color: #1E293B; font-weight: 700;">${t.name}</h4>
+                        <p style="margin: 4px 0 0; font-size: 12px; color: #64748B;">Técnico: ${t.conductor}</p>
+                    </div>
+                </div>
+                <div style="text-align: right;">
+                    <span style="font-size: 12px; font-weight: 600; color: ${color}; background: ${color}20; padding: 4px 8px; border-radius: 8px;">
+                        ${t.status}
+                    </span>
+                    <p style="margin: 4px 0 0; font-size: 11px; color: #94A3B8;">${t.telefono}</p>
+                </div>
+            </div>
+        `;
+    });
+    
+    listaHtml.innerHTML = html;
+}
+
+function solicitarGruaOffline(index) {
+    agregarAsistenciaReciente(index);
     const modal = document.getElementById('modal-grua-offline');
     if (modal) modal.style.display = 'flex';
 }
@@ -712,11 +791,13 @@ function cerrarModalGruaOffline() {
     if (modal) modal.style.display = 'none';
 }
 
-function solicitarGruaOnline(conductor, telefono) {
+function solicitarGruaOnline(index) {
+    agregarAsistenciaReciente(index);
+    const loc = locationsData[index];
     const modal = document.getElementById('modal-grua-online');
     if (modal) {
-        document.getElementById('grua-conductor-nombre').textContent = conductor;
-        document.getElementById('grua-conductor-telefono').textContent = telefono;
+        document.getElementById('grua-conductor-nombre').textContent = loc.conductor;
+        document.getElementById('grua-conductor-telefono').textContent = loc.telefono;
         modal.style.display = 'flex';
     }
 }
@@ -729,6 +810,46 @@ function cerrarModalGruaOnline() {
 function enviarMensajeGrua() {
     const input = document.getElementById('input-chat-grua');
     const container = document.getElementById('chat-messages-grua');
+    if (input.value.trim() !== '') {
+        const msgDiv = document.createElement('div');
+        msgDiv.style.cssText = "background: #2D8B71; color: white; padding: 8px 12px; border-radius: 12px 12px 0 12px; margin-bottom: 8px; align-self: flex-end; max-width: 80%; font-size: 13px;";
+        msgDiv.textContent = input.value;
+        container.appendChild(msgDiv);
+        input.value = '';
+        container.scrollTop = container.scrollHeight;
+    }
+}
+
+function solicitarVulcaOffline(index) {
+    agregarAsistenciaReciente(index);
+    const modal = document.getElementById('modal-vulca-offline');
+    if (modal) modal.style.display = 'flex';
+}
+
+function cerrarModalVulcaOffline() {
+    const modal = document.getElementById('modal-vulca-offline');
+    if (modal) modal.style.display = 'none';
+}
+
+function solicitarVulcaOnline(index) {
+    agregarAsistenciaReciente(index);
+    const loc = locationsData[index];
+    const modal = document.getElementById('modal-vulca-online');
+    if (modal) {
+        document.getElementById('vulca-tecnico-nombre').textContent = loc.conductor;
+        document.getElementById('vulca-tecnico-telefono').textContent = loc.telefono;
+        modal.style.display = 'flex';
+    }
+}
+
+function cerrarModalVulcaOnline() {
+    const modal = document.getElementById('modal-vulca-online');
+    if (modal) modal.style.display = 'none';
+}
+
+function enviarMensajeVulca() {
+    const input = document.getElementById('input-chat-vulca');
+    const container = document.getElementById('chat-messages-vulca');
     if (input.value.trim() !== '') {
         const msgDiv = document.createElement('div');
         msgDiv.style.cssText = "background: #2D8B71; color: white; padding: 8px 12px; border-radius: 12px 12px 0 12px; margin-bottom: 8px; align-self: flex-end; max-width: 80%; font-size: 13px;";

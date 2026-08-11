@@ -92,6 +92,16 @@
                         </div>
                     </div>
 
+                    <div id="contenedor-asistencias-solicitadas" style="display: none; margin-bottom: 24px;">
+                        <h3 style="font-size: 15px; color: #1E293B; font-weight: 700; margin-bottom: 12px; display: flex; align-items: center; gap: 6px;">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                            Asistencias en Ruta Solicitadas
+                        </h3>
+                        <div id="lista-asistencias-solicitadas" style="display: flex; flex-direction: column; gap: 12px;">
+                            <!-- JS will populate this -->
+                        </div>
+                    </div>
+
                 </div>
             </div>
 
@@ -131,7 +141,7 @@
                     
                     <div style="display: flex; justify-content: center; background: white; padding: 4px; border-radius: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.05); gap: 4px; margin-top: 16px; width: max-content; margin-left: auto; margin-right: auto; border: 1px solid #E2E8F0;">
                         <button onclick="slideMap(0)" id="dot-map-0" style="background: #2D8B71; color: white; border: none; padding: 10px 20px; border-radius: 20px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(45, 139, 113, 0.3);">🏪 Comercios</button>
-                        <button onclick="slideMap(1)" id="dot-map-1" style="background: transparent; color: #64748B; border: none; padding: 10px 20px; border-radius: 20px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 6px;">🛻 Grúas</button>
+                        <button onclick="slideMap(1)" id="dot-map-1" style="background: transparent; color: #64748B; border: none; padding: 10px 20px; border-radius: 20px; font-weight: 700; font-size: 14px; cursor: pointer; transition: all 0.3s; display: flex; align-items: center; gap: 6px;">🛻 Asistencia Ruta</button>
                     </div>
                     
                     <div id="container-desbloquear-mas" style="display: none; margin-top: 16px; text-align: center;">
@@ -656,16 +666,68 @@
         </div>
     </div>
     
+    <!-- Modal Vulca Offline -->
+    <div id="modal-vulca-offline" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: center; padding: 24px;">
+        <div style="background: white; width: 100%; max-width: 400px; border-radius: 24px; padding: 24px; display: flex; flex-direction: column; align-items: center; text-align: center;">
+            <div style="width: 64px; height: 64px; background: #FFFBEB; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #F59E0B; margin-bottom: 16px;">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            </div>
+            <h3 style="font-size: 20px; font-weight: 700; color: #1E293B; margin: 0 0 8px 0;">Esperando Confirmación</h3>
+            <p style="font-size: 14px; color: #64748B; margin: 0 0 24px 0; line-height: 1.5;">
+                Hemos enviado tu solicitud. Te notificaremos cuando el servicio de vulcanización se conecte y acepte tu requerimiento.
+            </p>
+            <button onclick="cerrarModalVulcaOffline()" style="background: #F1F5F9; color: #1E293B; border: none; padding: 14px; border-radius: 12px; font-weight: 600; font-size: 14px; width: 100%; cursor: pointer;">
+                Entendido
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal Vulca Online -->
+    <div id="modal-vulca-online" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: flex-end;">
+        <div style="background: white; width: 100%; border-radius: 24px 24px 0 0; padding: 24px; max-height: 90vh; display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+                <h3 style="font-size: 20px; font-weight: 700; color: #1E293B; margin: 0;">Solicitud Enviada</h3>
+                <button onclick="cerrarModalVulcaOnline()" style="background: none; border: none; font-size: 24px; color: #94A3B8; cursor: pointer; padding: 0;">&times;</button>
+            </div>
+            
+            <div style="background: #F8FAFC; border: 1px solid #E2E8F0; border-radius: 16px; padding: 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 16px;">
+                <div style="width: 56px; height: 56px; background: #E2F0ED; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #2D8B71;">
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                </div>
+                <div style="flex: 1;">
+                    <h4 id="vulca-tecnico-nombre" style="font-size: 16px; font-weight: 700; color: #1E293B; margin: 0 0 4px 0;">Nombre Técnico</h4>
+                    <p style="font-size: 13px; color: #64748B; margin: 0; display: flex; align-items: center; gap: 4px;">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                        <span id="vulca-tecnico-telefono">+56 9 XXXX XXXX</span>
+                    </p>
+                </div>
+            </div>
+
+            <div style="flex: 1; min-height: 200px; max-height: 300px; overflow-y: auto; background: #F1F5F9; border-radius: 16px; padding: 16px; display: flex; flex-direction: column; margin-bottom: 16px;" id="chat-messages-vulca">
+                <div style="background: white; border: 1px solid #E2E8F0; padding: 8px 12px; border-radius: 12px 12px 12px 0; margin-bottom: 8px; align-self: flex-start; max-width: 80%; font-size: 13px; color: #1E293B;">
+                    Hola, he recibido tu solicitud. Voy en camino.
+                </div>
+            </div>
+
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="input-chat-vulca" placeholder="Escribe un mensaje..." style="flex: 1; padding: 12px 16px; border-radius: 12px; border: 1px solid #E2E8F0; font-size: 14px; outline: none;">
+                <button onclick="enviarMensajeVulca()" style="background: #2D8B71; color: white; border: none; width: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: pointer;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+                </button>
+            </div>
+        </div>
+    </div>
+    
     <div id="modal-pago-gruas" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; justify-content: center; align-items: flex-end;">
         <div style="background: white; width: 100%; border-radius: 24px 24px 0 0; padding: 24px; max-height: 80vh; display: flex; flex-direction: column;">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-                <h3 style="font-size: 20px; font-weight: 700; color: #1E293B; margin: 0;">Desbloquear Grúas</h3>
+                <h3 style="font-size: 20px; font-weight: 700; color: #1E293B; margin: 0;">Desbloquear Asistencia en Ruta</h3>
                 <button onclick="cerrarPagoGruas()" style="background: none; border: none; font-size: 24px; color: #94A3B8; cursor: pointer; padding: 0;">&times;</button>
             </div>
             
             <div style="flex: 1; display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px;">
                 <p style="font-size: 15px; color: #475569; line-height: 1.5; margin: 0;">
-                    Paga $500 para desbloquear la visibilidad de todas las grúas en tiempo real.
+                    Paga $500 para desbloquear la visibilidad de todas las grúas y servicios de vulcanización en tiempo real.
                 </p>
                 <div style="background: #F1FDFB; border: 1px solid #2D8B71; border-radius: 12px; padding: 16px; display: flex; gap: 12px; align-items: center;">
                     <div style="width: 40px; height: 40px; background: #2D8B71; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; flex-shrink: 0;">
