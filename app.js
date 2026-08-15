@@ -10,7 +10,11 @@ let tieneSuscripcion = true;
 let usosSuscripcion = 3;
 let reservaActual = null;
 let misReservas = [];
-let gruasDesbloqueadas = false;
+let gruasDesbloqueadas = true;
+
+// Estado para desbloqueos de stock
+let desbloqueosRestantes = 0;
+let tiendaAfectadaTemporal = -1;
 
 // Lista para accesos rapidos en Inicio
 let asistenciasSolicitadasLista = [];
@@ -53,7 +57,7 @@ function crearMarcador(loc, originalIndex) {
     popupContent += `<span style="color:#439B8F; font-weight:600; font-size:11px; display:block; margin-top:2px;">Últ. act: ${loc.lastUpdate}</span>`;
     
     if (loc.type !== 'puntos_verdes') {
-        popupContent += `<button onclick="abrirStock(${originalIndex})" style="margin-top:10px; background: #2D8B71; color: white; border: none; padding: 6px 14px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; box-shadow: 0 2px 4px rgba(45,139,113,0.3); width: 100%;">Ver Stock</button>`;
+        popupContent += `<button onclick="intentarVerStock(${originalIndex})" style="margin-top:10px; background: #2D8B71; color: white; border: none; padding: 6px 14px; border-radius: 8px; font-weight: 600; font-size: 13px; cursor: pointer; box-shadow: 0 2px 4px rgba(45,139,113,0.3); width: 100%;">Visualizar Stock</button>`;
     }
     
     popupContent += `</div>`;
@@ -89,8 +93,93 @@ function filtrarMapa(categoria) {
     }, 150);
 }
 
+function mostrarTodasLasTiendas() {
+    if (!miMapa) return;
+    
+    setTimeout(() => {
+        if (markersLayer) {
+            miMapa.removeLayer(markersLayer);
+        }
+        
+        markersLayer = L.layerGroup().addTo(miMapa);
+        
+        // Incluir todas las tiendas que tengan stock o que sean relevantes (excluir gruas/vulcanizacion ya que tienen su propio mapa)
+        const tiposMostrar = ['ferreterias', 'almacenes', 'tiendas', 'farmacias', 'petshops', 'puntos_verdes'];
+        const filtrados = locationsData.filter(loc => tiposMostrar.includes(loc.type));
+        
+        filtrados.forEach(loc => {
+            const originalIndex = locationsData.indexOf(loc);
+            crearMarcador(loc, originalIndex).addTo(markersLayer);
+        });
+        
+        if (filtrados.length > 0) {
+            const group = new L.featureGroup(markersLayer.getLayers());
+            miMapa.fitBounds(group.getBounds(), {padding: [30, 30], maxZoom: 15});
+        }
+    }, 150);
+}
+
+function intentarVerStock(index) {
+    const estaDesbloqueada = tiendasDesbloqueadasLista.some(t => t.originalIndex === index);
+    
+    if (estaDesbloqueada) {
+        abrirStock(index);
+    } else if (desbloqueosRestantes > 0) {
+        if (confirm(`Tienes ${desbloqueosRestantes} desbloqueos gratuitos restantes. ¿Deseas usar uno en esta tienda?`)) {
+            desbloqueosRestantes--;
+            abrirStock(index);
+        }
+    } else {
+        tiendaAfectadaTemporal = index;
+        const modal = document.getElementById('modal-pago-stock');
+        const btnPagar = document.getElementById('btn-pagar-stock');
+        
+        if (saldoUsuario >= 500) {
+            btnPagar.textContent = `Pagar $500 (Tienes $${saldoUsuario.toLocaleString('es-CL')})`;
+            btnPagar.onclick = () => confirmarPagoStock();
+            btnPagar.style.opacity = "1";
+            btnPagar.disabled = false;
+        } else {
+            btnPagar.textContent = `Saldo insuficiente ($${saldoUsuario.toLocaleString('es-CL')})`;
+            btnPagar.onclick = null;
+            btnPagar.style.opacity = "0.5";
+            btnPagar.disabled = true;
+        }
+        
+        modal.style.display = 'flex';
+    }
+}
+
+function cerrarPagoStock() {
+    document.getElementById('modal-pago-stock').style.display = 'none';
+}
+
+function confirmarPagoStock() {
+    if (saldoUsuario >= 500) {
+        saldoUsuario -= 500;
+        actualizarSaldoUI();
+        
+        desbloqueosRestantes = 3; // Otorga 3 desbloqueos adicionales
+        gruasDesbloqueadas = true; // Desbloquea gratuitamente asistencia en ruta
+        
+        cerrarPagoStock();
+        abrirStock(tiendaAfectadaTemporal);
+    } else {
+        alert("Saldo insuficiente");
+    }
+}
+
 function abrirStock(index) {
     const loc = locationsData[index];
+    
+    // Registrar para la cuenta regresiva de 1 hora en Inicio si no existe
+    const now = Date.now();
+    const existe = tiendasDesbloqueadasLista.find(x => x.originalIndex === index);
+    if (!existe) {
+        tiendasDesbloqueadasLista.push({ loc: loc, originalIndex: index, unlockTime: now });
+        actualizarTemporizadoresDesbloqueadas();
+    }
+
     const modal = document.getElementById('modal-stock');
     const title = document.getElementById('modal-stock-title');
     const list = document.getElementById('modal-stock-list');
@@ -225,6 +314,7 @@ function confirmarPagoBusqueda() {
         actualizarSaldoUI();
         cerrarPagoBusqueda();
         numTiendasMostradas = 3;
+        gruasDesbloqueadas = true; // Desbloquea gratuitamente asistencia en ruta
         mostrarResultadosCercanos(busquedaActualItem);
     } else {
         alert("Saldo insuficiente");
